@@ -9,6 +9,6 @@
   },
   "api": {
     "type": "openapi",
-    "url": "https://TU_DOMINIO.onrender.com/.well-known/openapi.yaml"
+    "url": "https://supabase-products-agent.onrender.com/.well-known/openapi.yaml"
   }
 }
