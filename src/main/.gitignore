@@ -1,0 +1,13 @@
+# Archivos generados por Maven
+target/
+!target/*.jar  # Excepto el JAR final
+
+# Archivos de IDE
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+
+# Archivos del sistema
+.DS_Store
