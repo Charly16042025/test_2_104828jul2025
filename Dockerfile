@@ -13,18 +13,19 @@
 # Comando para ejecutar la app
 #ENTRYPOINT ["java", "-jar", "app.jar"]
 
-
 # Fase de construcción (genera el JAR)
 FROM eclipse-temurin:17-jdk AS builder
+
 WORKDIR /app
-COPY . .  
-# Copia todo el código fuente
-RUN ./mvnw clean package -DskipTests  # Construye el JAR
+COPY . .
+
+# Da permisos de ejecución y construye el JAR
+RUN chmod +x mvnw && \
+    ./mvnw clean package -DskipTests
 
 # Fase de ejecución (solo el JRE + JAR)
 FROM eclipse-temurin:17-jre
 WORKDIR /app
-COPY --from=builder /app/target/*.jar app.jar 
- # Copia el JAR construido
+COPY --from=builder /app/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
