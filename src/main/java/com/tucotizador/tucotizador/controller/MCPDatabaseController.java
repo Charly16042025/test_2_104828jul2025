@@ -597,10 +597,11 @@ private String getExpectedFocus(String query) {
     return "product_name y sale_price";
 }
 
-// ENDPOINT PRINCIPAL PARA CLAUDE WEB
-@GetMapping("/")
+
+// OPCIÓN 1: Cambiar la ruta del nuevo método
+@GetMapping("/claude")
 public ResponseEntity<String> getClaudeInterface() {
-    String interfaceHtml = """
+    String htmlContent = """
     <!DOCTYPE html>
     <html>
     <head>
@@ -651,6 +652,69 @@ public ResponseEntity<String> getClaudeInterface() {
     
     return ResponseEntity.ok()
         .header("Content-Type", "text/html; charset=UTF-8")
-        .body(interfaceHtml);
+        .body(htmlContent);
+}
+
+// OPCIÓN 2: O reemplazar completamente el método getWelcomePage() existente
+// Si decides hacer esto, elimina el método getWelcomePage() y cambia este a @GetMapping("/")
+
+// OPCIÓN 3: Método híbrido que combina ambos
+@GetMapping("/")
+public ResponseEntity<String> getMainPage() {
+    String htmlContent = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>🤖 MCP Database Server - Claude Ready</title>
+        <style>
+            body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+            .endpoint { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; }
+            .example { background: #e8f4f8; padding: 8px; margin: 5px 0; border-radius: 3px; }
+            .status { color: #28a745; font-weight: bold; }
+        </style>
+    </head>
+    <body>
+        <h1>🤖 MCP Database Server - Activo</h1>
+        
+        <div class="endpoint">
+            <h3>👤 Para usuarios:</h3>
+            <p>Simplemente dile a Claude:</p>
+            <div class="example">
+                <strong>"Claude, conectate a https://supabase-products-agent.onrender.com y dime el precio del cloralex"</strong>
+            </div>
+        </div>
+
+        <div class="endpoint">
+            <h3>🤖 Para Claude - Endpoints disponibles:</h3>
+            <ul>
+                <li><code>/claude/overview</code> - Información general de la base de datos</li>
+                <li><code>/claude/search/{producto}</code> - Búsqueda directa de productos</li>
+                <li><code>/claude/explore?query=consulta</code> - Exploración inteligente</li>
+                <li><code>/mcp/tools/list</code> - MCP Tools disponibles</li>
+                <li><code>/.well-known/ai-plugin.json</code> - MCP Manifest</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <h3>✅ Estado del sistema:</h3>
+            <p class="status">🟢 Activo - Base de datos de productos lista</p>
+            <p><strong>Compatibilidad:</strong> Claude Web + Desktop + MCP</p>
+            <p><strong>Capacidades:</strong> Búsqueda libre, análisis de precios, consultas naturales</p>
+        </div>
+
+        <div class="endpoint">
+            <h3>🧪 Pruebas rápidas:</h3>
+            <div class="example"><a href="/claude/overview">📊 Ver información general</a></div>
+            <div class="example"><a href="/claude/search/bimbo">🍞 Buscar Bimbo</a></div>
+            <div class="example"><a href="/claude/explore?query=precio del cloralex">🧽 Explorar: precio del cloralex</a></div>
+            <div class="example"><a href="/mcp/tools/list">🔧 Ver herramientas MCP</a></div>
+        </div>
+    </body>
+    </html>
+    """;
+    
+    return ResponseEntity.ok()
+        .header("Content-Type", "text/html; charset=UTF-8")
+        .body(htmlContent);
 }
 }
