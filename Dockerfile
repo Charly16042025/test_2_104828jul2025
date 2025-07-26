@@ -29,4 +29,4 @@ WORKDIR /app
 COPY --from=builder /app/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
-##fin del docker file
+##v1-25072025 - 06:38 - fin del docker file
