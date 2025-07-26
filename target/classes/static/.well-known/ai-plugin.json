@@ -1,0 +1,48 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+      "title": "Supabase Products API",
+      "version": "1.0"
+    },
+    "paths": {
+      "/producto": {
+        "get": {
+          "summary": "Obtener producto por nombre",
+          "parameters": [
+            {
+              "name": "nombre",
+              "in": "query",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Producto con precio",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "sale_price": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  

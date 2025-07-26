@@ -1,0 +1,14 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Agente de Productos",
+  "name_for_model": "productos_agent",
+  "description_for_human": "Consulta productos por nombre desde Supabase.",
+  "description_for_model": "Consulta productos usando el endpoint /producto",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://supabase-products-agent.onrender.com/.well-known/openapi.yaml"
+  }
+}
