@@ -425,4 +425,232 @@ public class MCPDatabaseController {
                 .header("Content-Type", "text/html")
                 .body(welcome);
     }
+/////////////////////////////////new endpoints
+/// 
+/// 
+/// 
+// SOLUCIÓN: MCP Web-Compatible que funciona con Claude Web
+// Agrega estos endpoints a tu ProductoController existente
+
+@GetMapping("/claude/explore")
+public ResponseEntity<String> exploreForClaude(@RequestParam(required = false) String query) {
+    try {
+        if (query == null || query.trim().isEmpty()) {
+            // Si no hay query, devolver información de la base de datos
+            return getCompleteOverview();
+        }
+        
+        // Buscar automáticamente basado en la query
+        return performSmartSearch(query);
+        
+    } catch (Exception e) {
+        return ResponseEntity.status(500)
+            .body("{\"error\": \"" + e.getMessage() + "\", \"suggestion\": \"Intenta con una búsqueda más específica\"}");
+    }
+}
+
+@GetMapping("/claude/search/{productName}")
+public ResponseEntity<String> searchProductByName(@PathVariable String productName) {
+    try {
+        HttpClient client = HttpClient.newHttpClient();
+        
+        // Búsqueda flexible por nombre
+        String url = SUPABASE_URL + "?select=*&product_name=ilike.*" + 
+            URLEncoder.encode(productName, StandardCharsets.UTF_8) + "*&limit=20";
+        
+        HttpRequest request = createSupabaseRequest(url);
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        
+        String result = String.format("""
+        {
+            "search_term": "%s",
+            "products_found": %s,
+            "claude_instructions": {
+                "task": "Analiza los productos encontrados y extrae la información solicitada",
+                "focus": "precio, disponibilidad, y detalles relevantes",
+                "format": "Respuesta directa y clara al usuario"
+            }
+        }
+        """, productName, response.body());
+        
+        return ResponseEntity.ok(result);
+        
+    } catch (Exception e) {
+        return ResponseEntity.status(500).body("{\"error\": \"" + e.getMessage() + "\"}");
+    }
+}
+
+@GetMapping("/claude/overview")
+public ResponseEntity<String> getCompleteOverview() {
+    try {
+        HttpClient client = HttpClient.newHttpClient();
+        
+        // Obtener muestra de productos
+        String sampleUrl = SUPABASE_URL + "?select=*&limit=10";
+        HttpRequest sampleRequest = createSupabaseRequest(sampleUrl);
+        HttpResponse<String> sampleResponse = client.send(sampleRequest, HttpResponse.BodyHandlers.ofString());
+        
+        // Obtener conteo total
+        String countUrl = SUPABASE_URL + "?select=count";
+        HttpRequest countRequest = createSupabaseRequest(countUrl);
+        HttpResponse<String> countResponse = client.send(countRequest, HttpResponse.BodyHandlers.ofString());
+        
+        String overview = String.format("""
+        {
+            "database_type": "Products Database",
+            "status": "Active and ready for queries",
+            "total_products": %s,
+            "sample_products": %s,
+            "available_fields": [
+                "id", "barcode", "product_name", "sale_price", "purchase_price"
+            ],
+            "search_capabilities": [
+                "Product name search",
+                "Price analysis", 
+                "Inventory overview",
+                "Custom queries"
+            ],
+            "claude_usage": {
+                "direct_search": "/claude/search/{productname}",
+                "exploration": "/claude/explore?query=your+question",
+                "examples": [
+                    "/claude/search/bimbo",
+                    "/claude/search/cloralex", 
+                    "/claude/explore?query=productos+de+limpieza"
+                ]
+            }
+        }
+        """, countResponse.body(), sampleResponse.body());
+        
+        return ResponseEntity.ok(overview);
+        
+    } catch (Exception e) {
+        return ResponseEntity.status(500).body("{\"error\": \"" + e.getMessage() + "\"}");
+    }
+}
+
+private ResponseEntity<String> performSmartSearch(String query) throws Exception {
+    HttpClient client = HttpClient.newHttpClient();
+    
+    // Análisis inteligente de la query
+    String normalizedQuery = query.toLowerCase();
+    String searchTerms = extractSearchTerms(normalizedQuery);
+    
+    if (searchTerms.isEmpty()) {
+        return getCompleteOverview();
+    }
+    
+    // Buscar productos
+    String url = SUPABASE_URL + "?select=*&product_name=ilike.*" + 
+        URLEncoder.encode(searchTerms, StandardCharsets.UTF_8) + "*&limit=50";
+    
+    HttpRequest request = createSupabaseRequest(url);
+    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    
+    String result = String.format("""
+    {
+        "original_query": "%s",
+        "extracted_search_terms": "%s",
+        "query_type": "%s",
+        "products_found": %s,
+        "claude_analysis": {
+            "instruction": "Analiza estos productos y responde la pregunta original del usuario",
+            "focus_on": "%s",
+            "response_style": "directo y útil"
+        }
+    }
+    """, query, searchTerms, detectQueryType(normalizedQuery), response.body(), getExpectedFocus(normalizedQuery));
+    
+    return ResponseEntity.ok(result);
+}
+
+private String extractSearchTerms(String query) {
+    // Extraer términos de búsqueda relevantes
+    String[] commonWords = {"precio", "costo", "cuanto", "cuesta", "dime", "dame", "busca", "encuentra", "de", "del", "la", "el"};
+    String[] words = query.split("\\s+");
+    
+    StringBuilder searchTerms = new StringBuilder();
+    for (String word : words) {
+        if (word.length() > 2 && !Arrays.asList(commonWords).contains(word)) {
+            if (searchTerms.length() > 0) searchTerms.append(" ");
+            searchTerms.append(word);
+        }
+    }
+    
+    return searchTerms.toString();
+}
+
+private String detectQueryType(String query) {
+    if (query.contains("precio") || query.contains("cuesta") || query.contains("costo")) {
+        return "price_inquiry";
+    } else if (query.contains("donde") || query.contains("tienda")) {
+        return "availability_inquiry";
+    } else if (query.contains("compare") || query.contains("vs")) {
+        return "comparison_inquiry";
+    }
+    return "general_search";
+}
+
+private String getExpectedFocus(String query) {
+    if (query.contains("precio")) return "sale_price y product_name";
+    if (query.contains("tienda")) return "availability y location info";
+    return "product_name y sale_price";
+}
+
+// ENDPOINT PRINCIPAL PARA CLAUDE WEB
+@GetMapping("/")
+public ResponseEntity<String> getClaudeInterface() {
+    String interfaceHtml = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>🤖 Claude Database Interface</title>
+        <style>
+            body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+            .endpoint { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; }
+            .example { background: #e8f4f8; padding: 8px; margin: 5px 0; border-radius: 3px; }
+        </style>
+    </head>
+    <body>
+        <h1>🤖 Base de Datos Lista para Claude</h1>
+        
+        <div class="endpoint">
+            <h3>🔍 Para explorar automáticamente:</h3>
+            <p><strong>URL base:</strong> <code>https://supabase-products-agent.onrender.com/</code></p>
+            <p><strong>Instrucción para usuarios:</strong></p>
+            <div class="example">
+                "Claude, conectate a https://supabase-products-agent.onrender.com y dime el precio del cloralex"
+            </div>
+        </div>
+
+        <div class="endpoint">
+            <h3>📋 Endpoints disponibles para Claude:</h3>
+            <ul>
+                <li><code>/claude/overview</code> - Información general de la base de datos</li>
+                <li><code>/claude/search/{producto}</code> - Búsqueda directa de productos</li>
+                <li><code>/claude/explore?query=consulta</code> - Exploración inteligente</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <h3>✅ Estado del sistema:</h3>
+            <p>🟢 <strong>Activo</strong> - Listo para consultas de Claude</p>
+            <p>🔧 <strong>Compatibilidad:</strong> Claude Web + Desktop</p>
+            <p>📊 <strong>Base de datos:</strong> Productos con precios actualizados</p>
+        </div>
+
+        <div class="endpoint">
+            <h3>🧪 Pruebas rápidas:</h3>
+            <div class="example"><a href="/claude/overview">Ver información general</a></div>
+            <div class="example"><a href="/claude/search/bimbo">Buscar Bimbo</a></div>
+            <div class="example"><a href="/claude/explore?query=precio del cloralex">Explorar: precio del cloralex</a></div>
+        </div>
+    </body>
+    </html>
+    """;
+    
+    return ResponseEntity.ok()
+        .header("Content-Type", "text/html; charset=UTF-8")
+        .body(interfaceHtml);
+}
 }
