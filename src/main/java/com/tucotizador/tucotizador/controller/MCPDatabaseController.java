@@ -659,7 +659,7 @@ public ResponseEntity<String> getClaudeInterface() {
 // Si decides hacer esto, elimina el método getWelcomePage() y cambia este a @GetMapping("/")
 
 // OPCIÓN 3: Método híbrido que combina ambos
-@GetMapping("/")
+@GetMapping("/principal")
 public ResponseEntity<String> getMainPage() {
     String htmlContent = """
     <!DOCTYPE html>
