@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 @CrossOrigin(origins = "*")
 public class PdfController {
     
-    @GetMapping("/pdfs")
+   /* @GetMapping("/pdfs")
     public List<String> listPdfs() throws IOException {
         URI uri = new ClassPathResource("static").getURI();
         Path folder = Paths.get(uri);
@@ -24,7 +24,32 @@ public class PdfController {
                     .map(f -> "https://docs-1-7o5e.onrender.com/" + f.getFileName().toString())
                     .collect(Collectors.toList());
         }
+    }*/
+    @GetMapping("/pdfs")
+public List<String> listPdfs() throws IOException {
+    URI uri = new ClassPathResource("static").getURI();
+    Path folder = Paths.get(uri);
+    
+    System.out.println("Buscando PDFs en: " + folder.toString());
+    
+    try (Stream<Path> files = Files.list(folder)) {
+        List<String> pdfs = files
+                .filter(f -> {
+                    boolean isPdf = f.toString().endsWith(".pdf");
+                    System.out.println("Archivo encontrado: " + f.getFileName() + " - Es PDF: " + isPdf);
+                    return isPdf;
+                })
+                .map(f -> {
+                    String url = "https://docs-1-7o5e.onrender.com/" + f.getFileName().toString();
+                    System.out.println("URL generada: " + url);
+                    return url;
+                })
+                .collect(Collectors.toList());
+        
+        System.out.println("Total PDFs encontrados: " + pdfs.size());
+        return pdfs;
     }
+}
     
     // Endpoint adicional para servir los PDFs directamente
     @GetMapping("/{filename:.+\\.pdf}")
