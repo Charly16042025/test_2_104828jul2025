@@ -1,41 +1,91 @@
-<!-- <!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <title>Precios</title>
-</head>
-<body>
-  <h1>Tabla de Precios</h1>
-  <a href="https://docs-1-7o5e.onrender.com/tabla_de_precios.pdf" target="_blank">Ver PDF de precios</a>
-</body>
-</html> -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <title>Listado de PDFs</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      margin: 10px 0;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 5px;
+    }
+    a {
+      color: #0066cc;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .loading {
+      text-align: center;
+      color: #666;
+    }
+    .error {
+      color: #cc0000;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
   <h1>Lista de archivos PDF disponibles</h1>
-  <ul id="pdf-list"></ul>
-
+  <div id="loading" class="loading">Cargando PDFs...</div>
+  <ul id="pdf-list" style="display: none;"></ul>
+  
   <script>
     fetch('/pdfs')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then(pdfs => {
+        const loading = document.getElementById('loading');
         const ul = document.getElementById('pdf-list');
-        pdfs.forEach(pdf => {
+        
+        loading.style.display = 'none';
+        ul.style.display = 'block';
+        
+        if (pdfs.length === 0) {
+          ul.innerHTML = '<li class="error">No se encontraron archivos PDF</li>';
+          return;
+        }
+        
+        pdfs.forEach((pdfUrl, index) => {
           const li = document.createElement('li');
           const a = document.createElement('a');
-          a.href = pdf;
-          a.textContent = pdf;
+          
+          // Extraer solo el nombre del archivo para mostrar
+          const filename = pdfUrl.split('/').pop();
+          
+          a.href = pdfUrl;
+          a.textContent = `${index + 1}. ${filename}`;
           a.target = "_blank";
+          
           li.appendChild(a);
           ul.appendChild(li);
         });
       })
       .catch(err => {
-        document.getElementById('pdf-list').innerHTML = '<li>Error al cargar los PDF</li>';
+        const loading = document.getElementById('loading');
+        const ul = document.getElementById('pdf-list');
+        
+        loading.style.display = 'none';
+        ul.style.display = 'block';
+        ul.innerHTML = '<li class="error">Error al cargar los PDFs: ' + err.message + '</li>';
+        
         console.error('Error cargando PDFs:', err);
       });
   </script>
