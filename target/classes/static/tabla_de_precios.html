@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -7,5 +7,37 @@
 <body>
   <h1>Tabla de Precios</h1>
   <a href="https://docs-1-7o5e.onrender.com/tabla_de_precios.pdf" target="_blank">Ver PDF de precios</a>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Listado de PDFs</title>
+</head>
+<body>
+  <h1>Lista de archivos PDF disponibles</h1>
+  <ul id="pdf-list"></ul>
+
+  <script>
+    fetch('/pdfs')
+      .then(res => res.json())
+      .then(pdfs => {
+        const ul = document.getElementById('pdf-list');
+        pdfs.forEach(pdf => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = pdf;
+          a.textContent = pdf;
+          a.target = "_blank";
+          li.appendChild(a);
+          ul.appendChild(li);
+        });
+      })
+      .catch(err => {
+        document.getElementById('pdf-list').innerHTML = '<li>Error al cargar los PDF</li>';
+        console.error('Error cargando PDFs:', err);
+      });
+  </script>
 </body>
 </html>
