@@ -3,6 +3,9 @@ package com.tucotizador.tucotizador.controller;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.*;
@@ -26,10 +29,12 @@ public class PdfController {
         }
     }*/
     @GetMapping("/pdfs")
-public List<String> listPdfs() throws IOException {
+public List<String> listPdfs(HttpServletRequest request) throws IOException {
     URI uri = new ClassPathResource("static").getURI();
     Path folder = Paths.get(uri);
-    
+    String baseUrl = request.getScheme() + "://" + request.getServerName()
+                     + (request.getServerPort() == 80 || request.getServerPort() == 443 ? "" : ":" + request.getServerPort());
+
     System.out.println("Buscando PDFs en: " + folder.toString());
     
     try (Stream<Path> files = Files.list(folder)) {
@@ -41,7 +46,7 @@ public List<String> listPdfs() throws IOException {
                 })
                 .map(f -> {
                     //String url = "https://docs-1-7o5e.onrender.com/" + f.getFileName().toString();
-String url = "https://docs-2-th03.onrender.com/" + f.getFileName().toString();
+    String url =baseUrl +  "/" + f.getFileName().toString();
 
                     System.out.println("URL generada: " + url);
                     return url;
