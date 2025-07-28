@@ -13,3 +13,4 @@ EXPOSE 8080
 # Comando para ejecutar la app
 ENTRYPOINT ["java", "-jar", "app.jar"]
 ##fin del docker file
+##Dockerfile v1 2772025 - 7:03
