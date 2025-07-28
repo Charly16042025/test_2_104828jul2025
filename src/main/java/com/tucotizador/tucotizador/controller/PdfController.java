@@ -40,7 +40,9 @@ public List<String> listPdfs() throws IOException {
                     return isPdf;
                 })
                 .map(f -> {
-                    String url = "https://docs-1-7o5e.onrender.com/" + f.getFileName().toString();
+                    //String url = "https://docs-1-7o5e.onrender.com/" + f.getFileName().toString();
+String url = "https://docs-j2yu.onrender.com/" + f.getFileName().toString();
+
                     System.out.println("URL generada: " + url);
                     return url;
                 })
