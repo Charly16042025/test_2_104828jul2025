@@ -58,7 +58,7 @@ public class PdfController {
         try (Stream<Path> files = Files.list(folder)) {
             return files
                     .filter(f -> f.toString().endsWith(".pdf"))
-                    .map(f -> "https://test_2_104828jul2025.onrender.com/" + f.getFileName().toString())
+                    .map(f -> "https://test-2-104828jul2025.onrender.com" + f.getFileName().toString())
                     .collect(Collectors.toList());
         }
     }
